@@ -2,12 +2,20 @@ import jsonFile from 'jsonfile';
 import got from 'got';
 import queryString from 'query-string';
 
-import TradingSignals from 'trading-signals';
-const { RSI } = TradingSignals;
-
 import DecimalJS from 'decimal.js';
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
+
+import {
+	getAverage,
+	getGainAndLoss,
+	getInitialChangeAverages,
+	getWeightedChangeAverages
+} from './lib/math.js';
+
+import {
+	MA as testMA
+} from './lib/test.js';
 
 const endpoint = 'https://www.binance.com/api/v1/klines';
 const maxBinanceCandles = 1000;
@@ -55,6 +63,9 @@ const coins = [
 ];
 
 (async () => {
+	
+	const testData = await jsonFile.readFile('./data/test.json');
+
 	// go through list of coins
 	return Promise.all(coins.map(async (coinSymbol) => {
 
@@ -66,125 +77,97 @@ const coins = [
 
 			const response = await got(getEndpoint(coinSymbol, interval, maxBinanceCandles)).json();
 
-			// backtest with different levels of downtrend tolerance
-			return Promise.all(torelatedDowntrends.map((toleratedDowntrend) => {
+			const result = response.reduce((accu, tickRaw, index) => {
 
-				const result = response.reduce((accu, tickRaw) => {
+				const prevTickData = accu[index - 1];
 
-					// init nested refined data object
-					const tickData = {
-						openTime: Number(tickRaw[0]),
-						closeTime: Number(tickRaw[6]),
-						openPrice: Number(tickRaw[1]),
-						closePrice: Number(tickRaw[4])
-					};
+				// init nested refined data object
+				// const tickData = {
+				// 	humanDate: Object.keys(testData)[index],
+				// 	closePrice: testData[Object.keys(testData)[index]]
+				// };
+				const tickData = {
+					openTime: Number(tickRaw[0]),
+					closeTime: Number(tickRaw[6]),
+					openPrice: Number(tickRaw[1]),
+					closePrice: Number(tickRaw[4])
+				};
 
-					// add human readable date
-					const date = new Date(tickData.openTime);
-					tickData.humanDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+				if (prevTickData) Object.assign(
+					tickData,
+					getGainAndLoss(tickData.closePrice, prevTickData.closePrice)
+				);
 
-					// ensure we have enough candles for the next calculations
-					if (accu.length < stepSize) return next();
+				// add human readable date
+				const date = new Date(tickData.openTime);
+				tickData.humanDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 
-					const filteredAccu = accu.slice(-1 * (stepSize - 1));
-					const filteredAccuWithCurrentTick = filteredAccu.concat(tickData);
+				// ensure we have enough candles for the next calculations
+				if (accu.length < (stepSize - 1)) return next();
 
-					// correct so-called MeanAverage calculation
-					const closePricesOfFilteredAccuWithCurrentTick = filteredAccuWithCurrentTick.map(({ closePrice }) => closePrice);
-					tickData[`MA${stepSize}`] = avg(closePricesOfFilteredAccuWithCurrentTick);
+				// calc moving average
+				tickData.MA = getAverage(accu
+					.slice(-1 * (stepSize - 1))
+					.concat(tickData)
+					.map(({ closePrice }) => closePrice)
+				);
+				testMA({ date: tickData.humanDate, MA: tickData.MA });
 
-					tickData[`RSI${stepSize}`] = rsi(filteredAccuWithCurrentTick);
+				// calc RSI
 
-					function rsi(ticks) {
+				// separately first and rest
+				// add zeros back to avg
+				// compare with test.js
+				// remove zeros from avg
+				// try with a existing data set
 
-					}
-
-					// function rsi01() {
-					// 	const [avgGain, avgLoss] = filteredAccu
-					// 		.map(({ openPrice, closePrice }, index, arr) => {
-					// 			if (index === 0) return null;
-					// 			const previousClosePrice = arr[index - 1].closePrice;
-					// 			return new Decimal(100).div(
-					// 				new Decimal(previousClosePrice).div(
-					// 					new Decimal(closePrice).minus(
-					// 						previousClosePrice
-					// 					)
-					// 				)
-					// 			).toNumber();
-					// 		})
-					// 		.reduce((movementsByDirection, percentageMovement) => {
-					// 			if (!percentageMovement) return movementsByDirection;
-					// 			movementsByDirection[percentageMovement > 0 ? 0 : 1].push(percentageMovement);
-					// 			return movementsByDirection;
-					// 		}, [[], []])
-					// 		.map((movementsInDirection) => avg(movementsInDirection));
-					//
-					// 	tickData.avgs = [avgGain, avgLoss];
-					// 	return new Decimal(100).minus(new Decimal(100).div(new Decimal(1).add(new Decimal(avgGain).div(new Decimal(avgLoss).abs()))));
-					// }
-
-					// let prevPosition = accu.length - filteredAccu.length - 1;
-					// if (prevPosition < 0) return next();
-					// tickData[`RSI${stepSize}`] = rsi02(filteredAccuWithCurrentTick, accu[prevPosition].closePrice);
-					// function rsi02(ticks) {
-					// 	let previousClosePrice = ticks[0].closePrice;
-					//
-					// 	let gains = new Decimal(0);
-					// 	let losses = new Decimal(0);
-					//
-					// 	for (let i = 0, n = ticks.length; i < n; i++) {
-					// 		const tick = ticks[i];
-					//
-					// 		if (i < 14) {
-					// 			if (tick.closePrice < previousClosePrice) {
-					// 				losses = losses.add(new Decimal(previousClosePrice).minus(tick.closePrice));
-					// 			} else if (tick.closePrice > previousClosePrice) {
-					// 				gains = gains.add(new Decimal(tick.closePrice).minus(previousClosePrice));
-					// 			}
-					//
-					// 			if (i === 13) {
-					// 				losses = losses.div(14);
-					// 				gains = gains.div(14);
-					// 			}
-					// 		} else {
-					// 			let gain = 0;
-					// 			let loss = 0;
-					// 			if (tick.closePrice < previousClosePrice) {
-					// 				loss = new Decimal(previousClosePrice).minus(tick.closePrice).toNumber();
-					// 			} else if (tick.closePrice > previousClosePrice) {
-					// 				gain = new Decimal(tick.closePrice).minus(previousClosePrice);
-					// 			}
-					// 			losses = losses.times(13).add(loss).div(14);
-					// 			gains = gains.times(13).add(gain).div(14);
-					// 		}
-					//
-					// 		previousClosePrice = tick.closePrice;
-					// 	}
-					//
-					// 	const rs = gains.div(losses);
-					// 	return new Decimal(100).minus(new Decimal(100).div(new Decimal(1).add(rs))).toNumber();
-					// }
-
-					// calc StochRSI
-
-					return next();
-
-					function next() {
-						accu.push(tickData);
-						return accu;
-					}
-
-				}, []);
-
-				debugger;
-
-				// const fileName = `./data/${coinSymbol}-${
-				// 	stepSize.reduce((accu, stepSize) => accu ? `${accu}-${stepSize}` : `${stepSize}`, '')
-				// }.json`;
+				// = MA
+				// 13 ticks + current
 				//
-				// return jsonFile.writeFile(fileName, data, { spaces: 4 });
+				// = first AvgGain / AvgLoss
+				// 13 closes + current
+				//
+				// = Rest
+				// AvgGain / AvgLoss + RS + RSI
+				// last
+				// AvgGain / AvgLoss + current
+				// gain / loss
 
-			}));
+				// ensure we have enough candles for the next calculations
+				if (accu.length < stepSize) return next();
+
+				if (!prevTickData.avgGain) {
+					const [ avgGain, avgLoss ] = getInitialChangeAverages(accu
+						.slice(-1 * (stepSize - 1))
+						.concat(tickData)
+						.map((({ gain, loss }) => ({ gain, loss })))
+					);
+					Object.assign(tickData, { avgGain, avgLoss });
+
+				} else {
+					const { avgGain, avgLoss, rsi } = getWeightedChangeAverages(accu
+						.slice(-1)
+						.concat(tickData),
+					stepSize);
+					Object.assign(tickData, { avgGain, avgLoss, RSI: rsi });
+				}
+
+				return next();
+
+				function next() {
+					accu.push(tickData);
+					return accu;
+				}
+
+			}, []);
+
+			debugger;
+
+			// const fileName = `./data/${coinSymbol}-${
+			// 	stepSize.reduce((accu, stepSize) => accu ? `${accu}-${stepSize}` : `${stepSize}`, '')
+			// }.json`;
+			//
+			// return jsonFile.writeFile(fileName, data, { spaces: 4 });
 
 		}));
 
@@ -195,9 +178,54 @@ const coins = [
 		return `${endpoint}?${qs}`;
 	}
 
-	function avg(arr) {
-		return arr.reduce((accu, num) => accu.add(num), new Decimal(0)).div(arr.length).toNumber();
+	function smaRsi(closes, prevTickData) {
+
+		const changeModifier = 0.07142857;
+		const latestClose = closes[closes.length - 1];
+
+		const [avgGain, avgLoss] = prevTickData[`RSI${stepSize}`]
+
+			? [
+				new Decimal(latestClose).times(changeModifier).add(new Decimal(prevTickData[`RSI${stepSize}`].avgGain).times(new Decimal(1).minus(changeModifier))),
+				new Decimal(latestClose).times(changeModifier).add(new Decimal(prevTickData[`RSI${stepSize}`].avgLoss).times(new Decimal(1).minus(changeModifier)))
+			]
+
+			: closes.reduce((accu, close, index, closes) => {
+				const previousClose = closes[index - 1];
+				if (!previousClose) return accu;
+				const change = Decimal.max(new Decimal(close).minus(previousClose));
+				accu[change.toNumber() > 0 ? 0 : 1].push(change.abs().toNumber());
+				// accu[0].push(Decimal.max(new Decimal(close).minus(previousClose), 0).toNumber());
+				// accu[1].push(Decimal.max(new Decimal(previousClose).minus(close), 0).toNumber());
+				return accu;
+			}, [[], []])
+			.reduce((changes, changeArr) => [...changes, getAverage(changeArr)], []);
+
+		const rs = new Decimal(avgGain).div(avgLoss).toNumber();
+
+		const rsi = (avgLoss === 0) ? 100 : new Decimal(100).minus(new Decimal(100).div(1 + rs)).toNumber();
+
+		return { avgGain, avgLoss, rsi };
+
+
+			// .map(({ closePrice }) => 100 / (openPrice / (closePrice - openPrice)))
+			// .reduce((movementsByDirection, percentageMovement) => {
+			// 	movementsByDirection[percentageMovement > 0 ? 0 : 1].push(percentageMovement);
+			// 	return movementsByDirection;
+			// }, [[], []])
+			// .map((movementsInDirection) => avg(movementsInDirection));
+
 	}
+
+	// function ema(arr, stepSize) {
+	// 	debugger;
+	// 	const multiplier = new Decimal(2).div(stepSize + 1);
+	// 	return arr.reduce((accu, num, index) => {
+	// 		if (index === 0) return accu;
+	// 		accu.push(multiplier.times(num).add(new Decimal(1).minus(multiplier)).times(accu.slice(-1)[0]).toNumber());
+	// 		return accu;
+	// 	}, []);
+	// }
 
 })();
 
@@ -206,11 +234,26 @@ const coins = [
 // 	Math.min(closePrice, smallest), Math.max(closePrice, largest)
 // ], [Infinity, 0]));
 
-// This calculation is RSI based on Open and Close differences, not a Close comparison
-// const [avgGain, avgLoss] = filteredAccu
-// 	.map(({ openPrice, closePrice }) => 100 / (openPrice / (closePrice - openPrice)))
-// 	.reduce((movementsByDirection, percentageMovement) => {
-// 		movementsByDirection[percentageMovement > 0 ? 0 : 1].push(percentageMovement);
-// 		return movementsByDirection;
-// 	}, [[], []])
-// 	.map((movementsInDirection) => avg(movementsInDirection));
+// function rsi(data, len) {
+// 	var length = (!len) ? 13 : len - 1;
+// 	var pl = [], arrsi = [];
+// 	for (var i = 1; i < data.length; i++) {
+// 		var diff = (data[i] - data[i - 1]) / data[i] * 100;
+// 		pl.push(diff);
+// 		if (pl.length >= length) {
+// 			var gain = 0, loss = 0;
+// 			for (let q in pl) {
+// 				if (pl[q] < 0) loss += pl[q];
+// 				if (pl[q] >= 0) gain += pl[q];
+// 			}
+// 			gain /= length;
+// 			loss = (Math.abs(loss)) / length;
+// 			let result = Number(100 - 100 / (1 + (gain / loss)));
+// 			arrsi.push(result);
+// 			var diff = (data[i] - data[i - 1]) / data[i] * 100;
+// 			pl.push(diff);
+// 			pl.splice(0, 1);
+// 		}
+// 	}
+// 	return arrsi;
+// }
