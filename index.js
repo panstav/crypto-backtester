@@ -15,6 +15,11 @@ import {
 } from './lib/math.js';
 
 import {
+	stoch_2080_one_position,
+	stoch_2080_infinite_positions
+} from './lib/strategies.js';
+
+import {
 	MA as testMA
 } from './lib/test.js';
 
@@ -67,6 +72,9 @@ const coins = [
 	
 	const testData = await jsonFile.readFile('./data/test.json');
 
+	// TODO: Add order-book tracking and strategizing
+	// for range bidding, etc.
+
 	// go through list of coins
 	return Promise.all(coins.map(async (coinSymbol) => {
 
@@ -75,21 +83,133 @@ const coins = [
 
 			// if corresponding file exists - only update it with missing data
 			// otherwise go for the max data pull
-
-			const rawTicks = await got(getEndpoint(coinSymbol, interval, maxBinanceCandles)).json();
-			const richTicks = interpret(rawTicks);
-
-			console.table(richTicks
-				.slice(900, 910) // 100-103
-				.map(({ humanDate, StochK, StochD, StochRSI }) => ({ humanDate, StochK, StochD, StochRSI }))
-			);
-
 			const fileName = `./data/${coinSymbol}-${
 				intervals.reduce((accu, stepSize) => accu ? `${accu}-${stepSize}` : `${stepSize}`, '')
 			}.json`;
 
-			return jsonFile.writeFile(fileName, richTicks, { spaces: 4 });
+			const richTicks = await jsonFile.readFile(fileName);
 
+			// const rawTicks = await got(getEndpoint(coinSymbol, interval, maxBinanceCandles)).json();
+			// const richTicks = interpret(rawTicks);
+
+			// console.table(richTicks
+			// 	.slice(-20) // 100-103
+			// 	.map(({ humanDate, RSI, StochRSI }) => ({ humanDate, RSI, StochRSI }))
+			// );
+
+			// const fileName = `./data/${coinSymbol}-${
+			// 	intervals.reduce((accu, stepSize) => accu ? `${accu}-${stepSize}` : `${stepSize}`, '')
+			// }.json`;
+			//
+			// await jsonFile.writeFile(fileName, richTicks, { spaces: 4 });
+
+			// const strategy = {
+			// 	indicators: ['closePrice'],
+			// 	definition: [
+			// 		{
+			// 			priority: 0.9,
+			// 			isTriggering: (ticks, positions) => {
+			// 				if (ticks.length < 2) return false;
+			// 				// current close price is higher than previous
+			// 				return (ticks[ticks.length - 1].closePrice > ticks[ticks.length - 2].closePrice);
+			// 			},
+			// 			setEffect: (wallet, tick) => {
+			// 				// buy coin for 10% of total liquid assets
+			// 				const totalPriceInUSD = new Decimal(wallet.USD).div(10).toNumber();
+			// 				wallet.buy(new Decimal(totalPriceInUSD).div(tick.closePrice).toNumber(), tick);
+			// 			}
+			// 		},{
+			// 			priority: 1,
+			// 			isTriggering: (ticks, positions) => {
+			// 				if (ticks.length < 14) return false;
+			// 				// trigger if current close is lowest for a streak of 14 ticks
+			// 				return Decimal.min(...ticks.slice(-14).map(({ closePrice }) => closePrice)).toNumber() === ticks[ticks.length - 1].closePrice;
+			// 			},
+			// 			setEffect: (wallet, tick) => {
+			// 				// sell 100% of coin TODO: Limit trade size or randomize a spread
+			// 				wallet.sell(wallet[coinSymbol], tick);
+			// 			}
+			// 		}
+			// 	]
+			// };
+			//
+			// const strategies = [stragegy];
+			//
+			// strategies.forEach((stragegy) => {
+			// 	// validate strategies
+			// 	// no duplicate priorities
+			// });
+			//
+			[
+				stoch_2080_one_position,
+				stoch_2080_infinite_positions
+			].forEach(((strategy) => evaluate(strategy, richTicks)));
+
+			function evaluate({ definition, requirements }, ticks) {
+				definition.push({ isTriggering: () => true, setEffect: () => {}, priority: 0 });
+
+				const positions = [];
+				const trades = [];
+				const wallet = {
+					USD: 10000,
+					[coinSymbol]: 0,
+					buy: (coinsToBuy, { closePrice, closeTime }) => {
+						// console.log(`BUY: $${closePrice} => ${coinSymbol}${coinsToBuy}\n`);
+						positions.push({ buyTime: closeTime, buyPrice: closePrice, coinsBought: coinsToBuy, tradedBack: 0 });
+						wallet.USD = new Decimal(wallet.USD).minus(new Decimal(closePrice).times(coinsToBuy)).toNumber();
+						wallet[coinSymbol] = new Decimal(wallet[coinSymbol]).add(coinsToBuy).toNumber();
+					},
+					sell: (coinsToSell, { closePrice: sellPrice, closeTime }) => {
+						// console.log(`SELL: ${coinSymbol}${coinsToSell} => $${sellPrice}\n`);
+						const coinsLeft = positions.reduce((coinsLeftForSell, { buyPrice, buyTime, coinsBought, tradedBack }, index) => {
+							if (coinsLeftForSell === 0 || coinsBought === tradedBack) return coinsLeftForSell;
+							const coinsToMarkTrade = Decimal.min(coinsLeftForSell, new Decimal(coinsBought).minus(tradedBack).toNumber()).toNumber();
+
+							positions[index].tradedBack = new Decimal(tradedBack).add(coinsToMarkTrade).toNumber();
+							if (positions[index].tradedBack === positions[index].coinsBought) positions[index].resolved = true;
+
+							trades.push({ coinsTraded: coinsToMarkTrade, buyPrice, sellPrice, buyTime, sellTime: closeTime });
+
+							return new Decimal(coinsLeftForSell).minus(coinsToMarkTrade).toNumber();
+						}, coinsToSell);
+
+						const coinsBeingSold = new Decimal(coinsToSell).minus(coinsLeft);
+						wallet.USD = new Decimal(wallet.USD).add(new Decimal(coinsBeingSold).times(sellPrice)).toNumber();
+						wallet[coinSymbol] = new Decimal(wallet[coinSymbol]).minus(coinsBeingSold).toNumber();
+					}
+				};
+
+				ticks
+					.slice(-200)
+					.reduce((accuBackTicks, tick) => {
+						accuBackTicks.push(tick);
+
+						// TODO: interpret only previous ticks
+						// TODO: buy / sell price should be half way previous and current close
+						definition
+							.filter(({ isTriggering }) => isTriggering(accuBackTicks, positions))
+							.sort((a, b) => b.priority - a.priority)[0]
+							.setEffect(wallet, coinSymbol, tick);
+
+						// console.log({ USD: wallet.USD, [coinSymbol]: wallet[coinSymbol] });
+						// console.log(`${tick.humanDate} 1${coinSymbol} $${tick.closePrice}\n`);
+						return accuBackTicks;
+					}, []);
+
+				// console.table(positions.filter(({ resolved }) => !resolved));
+				console.table(trades.map(({ buyPrice, sellPrice }) => {
+					const change = new Decimal(100).div(new Decimal(buyPrice).div(sellPrice)).minus(100);
+					return {
+						gain: Decimal.max(0, change).toDecimalPlaces(1).toNumber(),
+						loss: Decimal.min(0, change).abs().toDecimalPlaces(1).toNumber(),
+						buyPrice,
+						sellPrice
+					}
+				}));
+				console.log(`Wallet total value: $${wallet.USD + new Decimal(wallet[coinSymbol]).times(ticks[ticks.length - 1].closePrice).toNumber()}`);
+
+			}
+			
 		}));
 
 	}));
