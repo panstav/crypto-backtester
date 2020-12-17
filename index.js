@@ -14,17 +14,19 @@ import {
 	getStochRSI
 } from './lib/math.js';
 
-import {
-	stoch_2080_one_position,
-	stoch_2080_infinite_positions
-} from './lib/strategies.js';
+import strategies from './lib/strategies.js';
+import getLogger from './lib/log.js';
 
 import {
 	MA as testMA
 } from './lib/test.js';
 
+const log = getLogger(['strategy-summary', 'final-strategy-summary']);
+// const log = getLogger(['action', 'tick-summary', 'strategy-summary', 'final-strategy-summary']);
+
 const endpoint = 'https://www.binance.com/api/v1/klines';
 const maxBinanceCandles = 1000;
+const numTickToEvaluate = 365;
 const intervals = ['1d'/*, '3d', '1w'*/];
 const stepSize = 14;
 const torelatedDowntrends = [0/*, 1, 2*/];
@@ -140,12 +142,9 @@ const coins = [
 			// 	// no duplicate priorities
 			// });
 			//
-			[
-				stoch_2080_one_position,
-				stoch_2080_infinite_positions
-			].forEach(((strategy) => evaluate(strategy, richTicks)));
+			Object.keys(strategies).forEach(((strategyName) => evaluate(strategies[strategyName], richTicks, strategyName)));
 
-			function evaluate({ definition, requirements }, ticks) {
+			function evaluate({ definition, requirements }, ticks, strategyName) {
 				definition.push({ isTriggering: () => true, setEffect: () => {}, priority: 0 });
 
 				const positions = [];
@@ -154,13 +153,13 @@ const coins = [
 					USD: 10000,
 					[coinSymbol]: 0,
 					buy: (coinsToBuy, { closePrice, closeTime }) => {
-						// console.log(`BUY: $${closePrice} => ${coinSymbol}${coinsToBuy}\n`);
+						log('action', `BUY: $${closePrice} => ${coinSymbol}${coinsToBuy}\n`);
 						positions.push({ buyTime: closeTime, buyPrice: closePrice, coinsBought: coinsToBuy, tradedBack: 0 });
 						wallet.USD = new Decimal(wallet.USD).minus(new Decimal(closePrice).times(coinsToBuy)).toNumber();
 						wallet[coinSymbol] = new Decimal(wallet[coinSymbol]).add(coinsToBuy).toNumber();
 					},
 					sell: (coinsToSell, { closePrice: sellPrice, closeTime }) => {
-						// console.log(`SELL: ${coinSymbol}${coinsToSell} => $${sellPrice}\n`);
+						log('action', `SELL: ${coinSymbol}${coinsToSell} => $${sellPrice}\n`);
 						const coinsLeft = positions.reduce((coinsLeftForSell, { buyPrice, buyTime, coinsBought, tradedBack }, index) => {
 							if (coinsLeftForSell === 0 || coinsBought === tradedBack) return coinsLeftForSell;
 							const coinsToMarkTrade = Decimal.min(coinsLeftForSell, new Decimal(coinsBought).minus(tradedBack).toNumber()).toNumber();
@@ -180,7 +179,7 @@ const coins = [
 				};
 
 				ticks
-					.slice(-200)
+					.slice(-1 * numTickToEvaluate)
 					.reduce((accuBackTicks, tick) => {
 						accuBackTicks.push(tick);
 
@@ -191,13 +190,13 @@ const coins = [
 							.sort((a, b) => b.priority - a.priority)[0]
 							.setEffect(wallet, coinSymbol, tick);
 
-						// console.log({ USD: wallet.USD, [coinSymbol]: wallet[coinSymbol] });
-						// console.log(`${tick.humanDate} 1${coinSymbol} $${tick.closePrice}\n`);
+						log('tick-summary', { USD: wallet.USD, [coinSymbol]: wallet[coinSymbol] });
+						log('tick-summary', `${tick.humanDate} 1${coinSymbol} $${tick.closePrice}\n`);
 						return accuBackTicks;
 					}, []);
 
-				// console.table(positions.filter(({ resolved }) => !resolved));
-				console.table(trades.map(({ buyPrice, sellPrice }) => {
+				log('strategy-summary', positions.filter(({ resolved }) => !resolved), 'table');
+				log('strategy-summary', trades.map(({ buyPrice, sellPrice }) => {
 					const change = new Decimal(100).div(new Decimal(buyPrice).div(sellPrice)).minus(100);
 					return {
 						gain: Decimal.max(0, change).toDecimalPlaces(1).toNumber(),
@@ -205,8 +204,8 @@ const coins = [
 						buyPrice,
 						sellPrice
 					}
-				}));
-				console.log(`Wallet total value: $${wallet.USD + new Decimal(wallet[coinSymbol]).times(ticks[ticks.length - 1].closePrice).toNumber()}`);
+				}), 'table');
+				log('final-strategy-summary', `${strategyName}\nWallet total value: $${wallet.USD + new Decimal(wallet[coinSymbol]).times(ticks[ticks.length - 1].closePrice).toNumber()}`);
 
 			}
 			
