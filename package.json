@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "colors": "^1.4.0",
     "decimal.js": "^10.2.1",
     "got": "^11.8.0",
     "jsonfile": "^6.1.0",
