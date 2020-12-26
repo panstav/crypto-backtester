@@ -65,6 +65,7 @@ async function getCandleData(coinSymbol) {
 
 		// fetch data
 		const url = `${endpoint}?${queryString.stringify({ symbol: `${coinSymbol}USDT`, interval, limit: maxCandles })}`;
+		log('enrichment', 'Downloading data from Binance');
 		const rawTicks = await got(url).json();
 
 		// normalize data
@@ -78,12 +79,13 @@ async function getCandleData(coinSymbol) {
 		}));
 
 		// enrich data
+		log('enrichment', 'Enriching data');
 		const richTicks = enrich(normalizedTicks, { stepSize });
 
 		// debug enrichment
 		log('enrichment', richTicks
 				.slice(-20)
-				.map(({ humanDate, RSI, StochRSI }) => ({ humanDate, RSI, StochRSI })),
+				.map(({ humanDate, StochRSI_02_SmoothK, StochRSI_02_D }) => ({ humanDate, StochRSI_02_SmoothK, StochRSI_02_D })),
 			{ method: 'table' });
 
 		// save it locally
