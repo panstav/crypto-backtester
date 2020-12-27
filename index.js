@@ -31,15 +31,11 @@ const log = getLogger(logTypes);
 
 async function evaluate_all_cases() {
 
-	// TODO: Add order-book tracking and strategizing for range bidding, etc.
-
 	// coin by coin
 	return Promise.all(coins.map(async (coinSymbol) => {
 
 		// get enriched relevant ticks
 		const richTicks = await getCandleData(coinSymbol);
-
-		// TODO: validate strategies
 
 		runStrategies(coinSymbol, richTicks);
 
