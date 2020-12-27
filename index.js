@@ -95,7 +95,7 @@ async function getCandleData(coinSymbol) {
 function runStrategies(coinSymbol, richTicks) {
 
 	strategies
-		// .filter((strategy) => strategy.name === 'Stoch - Infinite positions')
+		.filter((strategy) => strategy.isActive)
 		.forEach((strategy) => evaluate(strategy, {
 			initialCapital,
 			coinSymbol,

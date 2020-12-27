@@ -1,7 +1,7 @@
 export default {
 	endpoint: 'https://www.binance.com/api/v1/klines',
-	logTypes: ['strategy-summary', 'final-strategy-summary'],
-	// logTypes: ['enrichment', 'tick-summary', 'action', 'strategy-summary', 'final-strategy-summary']
+	logTypes: ['final-strategy-summary'],
+	// logTypes: ['enrichment', 'action', 'tick-summary', 'strategy-summary', 'final-strategy-summary']
 	initialCapital: 1500,
 	maxCandles: 1000,
 	numTicksToEvaluate: 365,
@@ -9,12 +9,12 @@ export default {
 	stepSize: 14,
 
 	coins: [
-		// 'ATOM',
-		// 'BAND',
+		'ATOM',
+		'BAND',
 		'BNB',
-		// 'BTT',
-		// 'KAVA',
-		// 'TCT',
+		'BTT',
+		'KAVA',
+		'TCT',
 		// 'BAT',
 		// 'BCH',
 		// 'CVC',
@@ -25,7 +25,7 @@ export default {
 		// 'IOTA',
 		// 'LSK',
 		// 'NEO',
-		'REN',
+		// 'REN',
 		// 'VITE',
 		// 'WIN',
 		// 'XMR',
