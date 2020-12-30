@@ -62,7 +62,11 @@ async function getCandleData(coinSymbol) {
 		// fetch data
 		const url = `${endpoint}?${queryString.stringify({ symbol: `${coinSymbol}USDT`, interval, limit: maxCandles })}`;
 		log('enrichment', 'Downloading data from Binance');
-		const rawTicks = await got(url).json();
+		const rawTicks = await got(url).json().catch((err) => {
+			debugger;
+			console.error(err);
+			console.error(err.stack);
+		});
 
 		// normalize data
 		const normalizedTicks = rawTicks.map((tickRaw) => ({
