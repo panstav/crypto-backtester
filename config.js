@@ -7,6 +7,8 @@ export default {
 	numTicksToEvaluate: 365,
 	interval: '1d',
 	stepSize: 14,
+	percentageToRisk: 10,
+	percentageToGrab: 100,
 
 	coins: [
 		"BTC",

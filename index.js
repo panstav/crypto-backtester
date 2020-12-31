@@ -20,7 +20,9 @@ const {
 	endpoint,
 	initialCapital,
 	stepSize,
-	coins
+	coins,
+	percentageToRisk,
+	percentageToGrab
 } = config;
 
 const log = getLogger(logTypes);
@@ -104,7 +106,9 @@ function runStrategies(coinSymbol, richTicks) {
 			initialCapital,
 			coinSymbol,
 			numTicksToEvaluate,
-			ticks: richTicks
+			ticks: richTicks,
+			percentageToRisk,
+			percentageToGrab
 		}));
 
 }
