@@ -1,7 +1,5 @@
 export default {
 	endpoint: 'https://www.binance.com/api/v1/klines',
-	logTypes: ['final-strategy-summary'],
-	// logTypes: ['enrichment', 'action', 'tick-summary', 'strategy-summary', 'final-strategy-summary']
 	initialCapital: 1500,
 	maxCandles: 1000,
 	numTicksToEvaluate: 365,
@@ -9,7 +7,13 @@ export default {
 	stepSize: 14,
 	percentageToRisk: 10,
 	percentageToGrab: 100,
-
+	logTypes: {
+		'enrichment': false,
+		'action': true,
+		'tick-summary': true,
+		'strategy-summary': true,
+		'final-strategy-summary': true
+	},
 	coins: [
 		"BTC",
 		"ETH",
