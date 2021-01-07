@@ -80,14 +80,15 @@ async function getCandleData(coinSymbol) {
 		});
 
 		// normalize data
-		const normalizedTicks = rawTicks.map((tickRaw) => ({
-			openTime: Number(tickRaw[0]),
-			openPrice: Number(tickRaw[1]),
-			highPrice: Number(tickRaw[2]),
-			lowPrice: Number(tickRaw[3]),
-			closePrice: Number(tickRaw[4]),
-			closeTime: Number(tickRaw[6])
-		}));
+		const normalizedTicks = rawTicks
+			.map((tickRaw) => ({
+				openTime: Number(tickRaw[0]),
+				openPrice: Number(tickRaw[1]),
+				highPrice: Number(tickRaw[2]),
+				lowPrice: Number(tickRaw[3]),
+				closePrice: Number(tickRaw[4]),
+				closeTime: Number(tickRaw[6])
+			}));
 
 		// enrich data
 		log('enrichment', 'Enriching data');
