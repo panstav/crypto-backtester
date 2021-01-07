@@ -34,12 +34,13 @@ const log = getLogger(logTypes);
 async function evaluate_all_cases() {
 
 	// coin by coin
-	return Promise.all(coins.map(async (coinSymbol) => {
+	const results = await Promise.all(coins.map(async (coinSymbol) => {
 
 		// get enriched relevant ticks
 		const richTicks = await getCandleData(coinSymbol);
 
-		runStrategies(coinSymbol, richTicks);
+		// simulate coin history on chosen strategies
+		return runStrategies(coinSymbol, richTicks);
 
 	}));
 
@@ -99,17 +100,15 @@ async function getCandleData(coinSymbol) {
 }
 
 function runStrategies(coinSymbol, richTicks) {
-
-	strategies
+	return strategies
 		.filter((strategy) => strategy.isActive)
-		.forEach((strategy) => evaluate(strategy, {
+		.reduce((accu, strategy) => evaluate(strategy, {
 			initialCapital,
 			coinSymbol,
 			numTicksToEvaluate,
 			ticks: richTicks,
 			percentageToRisk,
 			percentageToGrab
-		}));
-
+		}), {});
 }
 
