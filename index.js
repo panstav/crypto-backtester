@@ -44,6 +44,16 @@ async function evaluate_all_cases() {
 
 	}));
 
+	console.log('total trades:', results
+		.reduce((trades, coinResult) => trades + coinResult.trades.length, 0));
+
+	const todaysDate = new Date();
+	const todaysHumanDate = `${todaysDate.getDate()}/${todaysDate.getMonth() + 1}/${todaysDate.getFullYear()}`;
+	console.log(results
+		.filter((result) => result.ticks.some(({ humanDate }) => humanDate.includes(todaysHumanDate)))
+		.filter((result) => result.positions.some(({ resolved, buyTime }) => !resolved && !buyTime.includes('12/2020') && !buyTime.includes('2021')))
+		.map(({ positions, wallet }) => Object.keys(wallet).filter((coinSymbol) => coinSymbol !== 'USD')[0]));
+
 }
 
 async function getCandleData(coinSymbol) {
@@ -66,9 +76,7 @@ async function getCandleData(coinSymbol) {
 		const url = `${endpoint}?${queryString.stringify({ symbol: `${coinSymbol}USDT`, interval, limit: maxCandles })}`;
 		log('enrichment', 'Downloading data from Binance');
 		const rawTicks = await got(url).json().catch((err) => {
-			debugger;
-			console.error(err);
-			console.error(err.stack);
+			throw err;
 		});
 
 		// normalize data
