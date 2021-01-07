@@ -82,7 +82,7 @@ async function getCandleData(coinSymbol) {
 
 		// enrich data
 		log('enrichment', 'Enriching data');
-		const richTicks = enrich(normalizedTicks, { stepSize });
+		const richTicks = enrich(normalizedTicks, { stepSize, interval });
 
 		// debug enrichment
 		log('enrichment', richTicks
