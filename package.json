@@ -13,6 +13,7 @@
   "dependencies": {
     "colors": "^1.4.0",
     "decimal.js": "^10.2.1",
+    "delay": "^4.4.0",
     "got": "^11.8.0",
     "jsonfile": "^6.1.0",
     "pipeline": "^0.1.3",
