@@ -12,8 +12,8 @@ export default {
 	percentageToGrab: 100,
 	logTypes: {
 		'enrichment': false,
-		'action': true,
-		'tick-summary': true,
+		'action': false,
+		'tick-summary': false,
 		'strategy-summary': true,
 		'final-strategy-summary': true
 	},
