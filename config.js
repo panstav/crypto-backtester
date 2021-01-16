@@ -4,6 +4,7 @@ export default {
 	initialCapital: 1500,
 	// tradingStartTime: 1514764800000,
 	tradingStartTime: 0,
+	// tradingStartTime: 1567281600000,
 	numTicksToEvaluate: false,
 	// numTicksToEvaluate: 24 * 7 * 4,
 	// numTicksToEvaluate: 28,
