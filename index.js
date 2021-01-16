@@ -6,7 +6,8 @@ import DecimalJS from 'decimal.js';
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
 
-import strategies from './lib/strategies.js';
+import strategies from './strategies/index.js';
+
 import getLogger from './lib/log.js';
 import enrich from './lib/enrich.js';
 import evaluate from './lib/evaluate.js';
@@ -112,7 +113,6 @@ async function getCandleData(coinSymbol) {
 
 function runStrategies(coinSymbol, richTicks) {
 	return strategies
-		.filter((strategy) => strategy.isActive)
 		.reduce((accu, strategy) => evaluate(strategy, {
 			initialCapital,
 			coinSymbol,
