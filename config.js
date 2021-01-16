@@ -2,6 +2,8 @@ export default {
 	endpoint: 'https://www.binance.com/api/v3/klines',
 	updateData: false,
 	initialCapital: 1500,
+	// tradingStartTime: 1514764800000,
+	tradingStartTime: 0,
 	numTicksToEvaluate: false,
 	// numTicksToEvaluate: 24 * 7 * 4,
 	// numTicksToEvaluate: 28,
