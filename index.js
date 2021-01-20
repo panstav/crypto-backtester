@@ -55,7 +55,10 @@ async function evaluate_all_cases() {
 		.filter((result) => result.positions.some(({ resolved, buyTime }) => !resolved && !buyTime.includes('12/2020') && !buyTime.includes('2021')))
 		.map(({ positions, wallet }) => Object.keys(wallet).filter((coinSymbol) => coinSymbol !== 'USD')[0]));
 
-	console.table(results.map(({ wallet, ticks }) => ({ coinSymbol: Object.keys(wallet).filter((coinSymbol) => coinSymbol !== 'USD')[0], StochRSI: ticks[ticks.length-1].StochRSI_02_SmoothK })));
+	console.table(results
+		.map(({ wallet, ticks }) => ({ coinSymbol: Object.keys(wallet).filter((coinSymbol) => coinSymbol !== 'USD')[0], StochRSI: ticks[ticks.length-1].StochRSI_02_SmoothK }))
+		.filter(({ StochRSI }) => StochRSI < 20)
+	);
 
 }
 
