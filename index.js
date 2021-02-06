@@ -39,7 +39,7 @@ async function evaluate_all_cases() {
 	const todaysHumanDate = `${todaysDate.getDate()}/${todaysDate.getMonth() + 1}/${todaysDate.getFullYear()}`;
 	console.log(results
 		.filter((result) => result.ticks.some(({ humanDate }) => humanDate.includes(todaysHumanDate)))
-		.filter((result) => result.positions.some(({ resolved, buyTime }) => !resolved && !buyTime.includes('12/2020') && !buyTime.includes('2021')))
+		.filter((result) => result.positions.some(({ resolved, buyTime, humanDate }) => !resolved && !humanDate.includes('12/2020') && !humanDate.includes('2021')))
 		.map(({ positions, wallet }) => Object.keys(wallet).filter((coinSymbol) => coinSymbol !== 'USD')[0]));
 
 }
