@@ -1,6 +1,10 @@
 import DecimalJS from 'decimal.js';
+import { getAverage } from '../lib/math.js';
+
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
+
+import config from '../config.js';
 
 export function close_price_rises_in_one_tick(ticks) {
 	if (ticks.length < 3) return false;
@@ -34,9 +38,11 @@ export function one_position_only(ticks, positions) {
 	return !positions.filter(({ resolved }) => !resolved).length;
 }
 
-export function trending(direction, { MA7, MA14, MA28, continiously = 1 }) {
+export function trending(direction, { MA7, MA14, MA28, continiously = 1, factor = 0 }) {
 	if (direction !== 'up' && direction !== 'down') throw new Error('Direction can be either \'up\' or \'down\'');
 	const isUp = direction === 'up';
+
+	if (factor < 1) factor = new Decimal(factor).add(1).toNumber();
 
 	return (ticks) => {
 
@@ -53,9 +59,9 @@ export function trending(direction, { MA7, MA14, MA28, continiously = 1 }) {
 				const greaterTick = isUp ? array[index + 1] : tick;
 				const lesserTick = isUp ? tick : array[index + 1];
 
-				if (MA7 && new Decimal(lesserTick.MA7).greaterThan(greaterTick.MA7)) return false;
-				if (MA14 && new Decimal(lesserTick.MA14).greaterThan(greaterTick.MA14)) return false;
-				if (MA28 && new Decimal(lesserTick.MA28).greaterThan(greaterTick.MA28)) return false;
+				if (MA7 && new Decimal(lesserTick.MA7).times(factor).greaterThan(greaterTick.MA7)) return false;
+				if (MA14 && new Decimal(lesserTick.MA14).times(factor).greaterThan(greaterTick.MA14)) return false;
+				if (MA28 && new Decimal(lesserTick.MA28).times(factor).greaterThan(greaterTick.MA28)) return false;
 				return true;
 			});
 
@@ -67,17 +73,23 @@ export function trending(direction, { MA7, MA14, MA28, continiously = 1 }) {
 export function prevalent(changeToClosePrice, timesToAppear, numOfLastTicks) {
 	return (ticks) => {
 		if (numOfLastTicks > ticks.length) numOfLastTicks = ticks.length;
-		const atPrice = new Decimal(ticks[ticks.length - 1].closePrice).times(new Decimal(100).add(changeToClosePrice)).div(100).toNumber();
+		const atPrice = new Decimal(ticks[ticks.length - 1].closePrice).times(new Decimal(changeToClosePrice).div(100).add(1)).toNumber();
 		return ticks
 			.slice(-1 * numOfLastTicks)
-			.filter(({ highPrice }) => highPrice > atPrice)
+			.filter(({ highPrice }) => highPrice > atPrice) // .filter(({ highPrice, lowPrice }) => highPrice > atPrice && lowPrice < atPrice)
 			.length >= timesToAppear;
+	}
+}
+
+function on_change(percentage) {
+	return (ticks, positions) => {
+    return new Decimal(positions[positions.length - 1].buyPrice).times(new Decimal(100).add(percentage)).div(100).lessThan(ticks[ticks.length - 2].closePrice);
 	}
 }
 
 export function grab_on_profit(percentage) {
 	return (ticks, positions) => {
-    return new Decimal(positions[positions.length - 1].buyPrice).times(new Decimal(100).add(percentage)).div(100).lessThan(ticks[ticks.length - 2].closePrice);
+		return new Decimal(positions[positions.length - 1].buyPrice).times(new Decimal(100).add(percentage)).div(100).lessThan(getAverage([ticks[ticks.length - 2].closePrice, ticks[ticks.length - 1].closePrice]));
 	}
 }
 
@@ -147,6 +159,38 @@ export function stochKnD_touched_top(ticks) {
 
 }
 
+export function stochKnD({ cross: crossDireciotn, top = 80, bottom = 20, kOverD = 0 }) {
+	return (ticks) => {
+		if (ticks.length < 3 || ticks.slice(-3).some(({ StochRSI_02_D }) => !StochRSI_02_D && StochRSI_02_D !== 0)) return false;
+
+		const previousSrk = ticks[ticks.length - 2].StochRSI_02_SmoothK;
+		const oneBeforeSrk = ticks[ticks.length - 3].StochRSI_02_SmoothK;
+		const previousSrd = ticks[ticks.length - 2].StochRSI_02_D;
+		const oneBeforeSrd = ticks[ticks.length - 3].StochRSI_02_D;
+
+		if (crossDireciotn === 'bottom') return (
+			// cross happen between the previous tick and the one before that
+			previousSrk > previousSrd
+			&& oneBeforeSrk < oneBeforeSrd
+			// one of these is lower than 20
+			&& [previousSrk, oneBeforeSrk, previousSrd, oneBeforeSrd].some((stochRsi) => stochRsi < bottom)
+			&& ((previousSrk - previousSrd) > kOverD)
+		);
+
+		if (crossDireciotn === 'top') return (
+			// cross happen between the previous tick and the one before that
+			previousSrk < previousSrd
+			&& oneBeforeSrk > oneBeforeSrd
+			// one of these is higher than 80
+			&& [previousSrk, oneBeforeSrk, previousSrd, oneBeforeSrd].some((stochThing) => stochThing > top)
+			&& ((previousSrd - previousSrk) > kOverD)
+		);
+
+		throw new Error(`Wrong crossDireciotn: ${crossDireciotn}`)
+
+	}
+}
+
 export function stochKnD_top_cross(ticks) {
 	if (ticks.length < 3 || ticks.slice(-3).some(({ StochRSI_02_D }) => !StochRSI_02_D && StochRSI_02_D !== 0)) return false;
 
@@ -187,4 +231,46 @@ export function either(...fns) {
 	return (ticks, positions) => {
 		return fns.some((fn) => fn(ticks, positions));
 	}
+}
+
+export function keeper(percentageStep) {
+	return (ticks, positions) => {
+		const currentBid = getAverage([ticks[ticks.length - 2].closePrice, ticks[ticks.length - 1].closePrice]);
+		const yesterdayBid = getAverage([ticks[ticks.length - 3].closePrice, ticks[ticks.length - 2].closePrice]);
+		const buyPrice = positions[positions.length - 1].buyPrice;
+		if (currentBid > yesterdayBid || yesterdayBid < buyPrice) return false;
+		const precentOffBuyPrice = new Decimal(buyPrice).div(100).times(percentageStep).toNumber();
+		return (new Decimal(currentBid).minus(buyPrice)).div(precentOffBuyPrice).abs().floor()
+			.lessThan((new Decimal(yesterdayBid).minus(buyPrice)).div(precentOffBuyPrice).abs().floor())
+	}
+}
+
+export function stepsAwayFromPeak(steps, top = 1) {
+	steps *= 3600000;
+	if (config.interval.includes('d')) steps *= 24;
+
+	return (ticks) => {
+
+		return ticks
+			.reduce((top3, tick) => [...top3, tick].sort((a, b) => b.highPrice - a.highPrice).slice(0, 3), [])
+			.every((topTick) => ((ticks[ticks.length - 1].openTime - topTick.closeTime) > steps));
+
+		// const averages = ticks
+		// 	.map(({ closePrice }) => closePrice)
+		// 	.reduce((accu, closePrice) => {
+		// 		if (accu[accu.length - 1].length === config.stepSize) {
+		// 			accu.push([closePrice]);
+		// 		} else {
+		// 			accu[accu.length - 1].push(closePrice);
+		// 		}
+		// 		return accu;
+		// 	}, [[]])
+		// 	.map((step) => getAverage(step));
+		//
+		// const greatestAverage = Decimal.max(...averages).toNumber();
+		// return averages
+		// 	.slice(-1 * steps)
+		// 	.filter((avg) => avg < greatestAverage)
+		// 	.length < top;
+	};
 }
