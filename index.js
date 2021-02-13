@@ -4,7 +4,6 @@ Decimal.set({ precision: 9 });
 
 import strategies from './strategies/index.js';
 
-import getLogger from './lib/log.js';
 import evaluate from './lib/evaluate.js';
 import getCandleData from './lib/get-candles.js';
 
@@ -14,37 +13,40 @@ const {
 	initialCapital,
 	coins,
 	percentageToRisk,
-	percentageToGrab
+	percentageToGrab,
+	tradingStartTime,
+	stepSize,
+	interval,
+	updateData,
+	endpoint,
+	logTypes
 } = config;
 
 (async () => {
-	await evaluate_all_cases();
-})();
+	await Promise.all(coins.map(async (coinSymbol) => {
 
-async function evaluate_all_cases() {
-
-	// coin by coin
-	const results = await Promise.all(coins.map(async (coinSymbol) => {
-
-		// get enriched relevant ticks
-		const richTicks = await getCandleData(coinSymbol);
+		// coin by coin - get enriched relevant ticks
+		const richTicks = await getCandleData(coinSymbol, {
+			updateData,
+			interval,
+			endpoint,
+			stepSize,
+			logTypes
+		});
 
 		// simulate coin history on chosen strategies
-		return runStrategies(coinSymbol, richTicks);
-
-	}));
-
-}
-
-function runStrategies(coinSymbol, richTicks) {
-	return strategies
-		.reduce((accu, strategy) => evaluate(strategy, {
+		return strategies.forEach((strategy) => evaluate(strategy, {
+			ticks: richTicks,
 			initialCapital,
 			coinSymbol,
 			numTicksToEvaluate,
-			ticks: richTicks,
 			percentageToRisk,
-			percentageToGrab
-		}), {});
-}
+			percentageToGrab,
+			tradingStartTime,
+			stepSize,
+			interval,
+			logTypes
+		}));
 
+	}));
+})();
