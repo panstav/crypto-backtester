@@ -3,6 +3,7 @@ const apiUrl = 'https://www.binance.com/api/v3';
 export default {
 	apiUrl,
 	endpoint: `${apiUrl}/klines`,
+	ticksPerBatch: 1000,
 	updateData: true,
 	initialCapital: 1500,
 	// tradingStartTime: 1514764800000,

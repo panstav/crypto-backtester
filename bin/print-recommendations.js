@@ -15,7 +15,7 @@ const {
 	percentageToGrab,
 	initialCapital,
 	intervals,
-	logTypes
+	ticksPerBatch
 } = config;
 
 import { Pandit001 as strategy } from '../strategies/index.js';
@@ -100,11 +100,16 @@ async function getCoins() {
 	for (const symbol of relevantSymbols) {
 		await Promise.all(intervals.map((interval) => {
 			return getCandleData(symbol, {
-				updateData: true,
 				interval,
 				endpoint,
 				stepSize,
-				logTypes
+				ticksPerBatch,
+				updateData: true,
+				logTypes: {
+					'fetching-detail': true,
+					'fetching': true,
+					'final-strategy-summary': true
+				}
 			}).then((ticks) => ({ interval, ticks }));
 		})).then((ticksByInterval) => {
 			if (ticksByInterval.every(({ ticks }) => ticks.length > 100)) coins.push({

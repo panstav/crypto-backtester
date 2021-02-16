@@ -19,7 +19,8 @@ const {
 	interval,
 	updateData,
 	endpoint,
-	logTypes
+	logTypes,
+	ticksPerBatch
 } = config;
 
 (async () => {
@@ -31,7 +32,8 @@ const {
 			interval,
 			endpoint,
 			stepSize,
-			logTypes
+			logTypes,
+			ticksPerBatch
 		});
 
 		// simulate coin history on chosen strategies
