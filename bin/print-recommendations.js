@@ -1,4 +1,7 @@
 import got from 'got';
+import DecimalJS from 'decimal.js';
+const Decimal = DecimalJS.Decimal;
+Decimal.set({ precision: 9 });
 
 import getCandleData from '../lib/get-candles.js';
 import evaluate from '../lib/evaluate.js';
@@ -56,19 +59,17 @@ async function getRecommendations() {
 				Link: `https://www.binance.com/en/trade/${coin.symbol}_USDT`,
 				Timing: positions[positions.length - 1].humanDate,
 				Timestamp: positions[positions.length - 1].buyTime,
-				...(!interval.includes('h')
-					? {
-						'Historical Profitability': `${trades.filter((trade) => trade.change$ > 0).length} / ${trades.length}`,
-						'Effective Volatility': `<3 ${heldFor('less', 4)} <45 ${heldFor('less', 46)} >45 ${heldFor('more', 45)}`
-					}
-					: {}
-				)
+				'Historical Profitability': new Decimal(trades.filter((trade) => trade.change$ > 0).length).div(trades.length).times(100).toDecimalPlaces(1).toNumber(),
+				'Effective Volatility': `<7 ${heldFor('less', 7)} >45 ${heldFor('more', 45)}`
 			});
 
 			function heldFor(moreOrLess, days) {
-				return trades.filter((trade) => moreOrLess === 'more'
-					? (trade.holdDuration / 24 / 60 / 60 / 1000) > days
-					: (trade.holdDuration / 24 / 60 / 60 / 1000) < days
+				return trades.filter((trade) => {
+					const daysHeld = trade.holdDuration / 24 / 60 / 60 / 1000;
+					return moreOrLess === 'more'
+							? daysHeld > days
+							: daysHeld < days;
+					}
 				).length;
 			}
 
