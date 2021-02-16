@@ -6,9 +6,9 @@ export default {
 	ticksPerBatch: 1000,
 	updateData: true,
 	initialCapital: 1500,
-	// tradingStartTime: 1514764800000,
 	tradingStartTime: 0,
-	// tradingStartTime: 1567281600000,
+	// tradingStartTime: 1514764800000, // 1/1/18
+	// tradingStartTime: 1609462861000, // 1/1/21
 	numTicksToEvaluate: false,
 	// numTicksToEvaluate: 24 * 7 * 4,
 	// numTicksToEvaluate: 28,
@@ -26,10 +26,13 @@ export default {
 		'enrichment': false,
 		'action': false,
 		'tick-summary': false,
-		'strategy-summary': false,
+		'strategy-summary': true,
 		'final-strategy-summary': true
 	},
 	coins: [
+	// 	""
+	// ],
+	// coins2: [
 		"BTC",
 		"ETH",
 		"BNB",
