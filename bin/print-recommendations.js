@@ -18,7 +18,7 @@ const {
 	ticksPerBatch
 } = config;
 
-import { Pandit001 as strategy } from '../strategies/index.js';
+import { Pandit002 as strategy } from '../strategies/index.js';
 
 (async () => {
 

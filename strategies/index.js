@@ -31,4 +31,19 @@ export const Pandit001 = {
 	}
 };
 
-export default [ Pandit001 ];
+export const Pandit002 = {
+	name: 'Pandit Hourly',
+	advices: {
+		buy: [
+			// one_position_only,
+			stochKnD({ cross: 'bottom', bottom: 15, kOverD: 4.125 }),
+			trending('up', { MA28: true, factor: 0.0000007 }),
+			stepsAwayFromPeak(100)
+		],
+		sell: [
+			keeper(1)
+		]
+	}
+};
+
+export default [ Pandit002 ];
