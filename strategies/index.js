@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js';
+
 import {
 	close_price_rises_in_one_tick,
 	close_price_falls_in_one_tick,
@@ -32,13 +34,28 @@ export const Pandit001 = {
 };
 
 export const Pandit002 = {
-	name: 'Pandit Hourly',
+	name: 'Pandit Prev',
 	advices: {
 		buy: [
 			// one_position_only,
 			stochKnD({ cross: 'bottom', bottom: 15, kOverD: 4.125 }),
 			trending('up', { MA28: true, factor: 0.0000007 }),
-			stepsAwayFromPeak(100)
+			stepsAwayFromPeak(200)
+		],
+		sell: [
+			keeper(3)
+		]
+	}
+};
+
+export const Pandit003 = {
+	name: 'Pandit Next',
+	advices: {
+		buy: [
+			// one_position_only,
+			stochKnD({ cross: 'bottom', bottom: 15, kOverD: 4.125 }),
+			trending('up', { MA28: true, factor: 0.0000007 }),
+			(ticks) => ticks[ticks.length - 1].RSI < 41
 		],
 		sell: [
 			keeper(1)
@@ -46,4 +63,4 @@ export const Pandit002 = {
 	}
 };
 
-export default [ Pandit002 ];
+export default [ Pandit003 ];
