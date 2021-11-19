@@ -233,6 +233,29 @@ export function either(...fns) {
 	}
 }
 
+export function daysPast(maximumDays) {
+	return (ticks, positions) => {
+		return ticks[ticks.length - 1].openTime > positions
+			.filter((position) => !position.resolved)[0]
+			.buyTime + (86400000 * maximumDays);
+	}
+}
+
+export function optimist(percentageStep) {
+	return (ticks, positions) => {
+		return positions.some((position) => {
+			if (position.resolved) return false;
+			const currentPrice = getAverage([ticks[ticks.length - 1].openPrice, ticks[ticks.length - 1].closePrice]);
+			const currentPercentageRelativeToBuyPrice = new Decimal(currentPrice).minus(position.buyPrice).times(100).div(position.buyPrice);
+			const currentStep = currentPercentageRelativeToBuyPrice.div(percentageStep).floor().toNumber();
+			const previousPrice = getAverage([ticks[ticks.length - 2].openPrice, ticks[ticks.length - 2].closePrice]);
+			const previousPercentageRelativeToBuyPrice = new Decimal(previousPrice).minus(position.buyPrice).times(100).div(position.buyPrice);
+			const previousStep = previousPercentageRelativeToBuyPrice.div(percentageStep).floor().toNumber();
+			return 0 <= currentStep && currentStep < previousStep;
+		});
+	}
+}
+
 export function keeper(percentageStep) {
 	return (ticks, positions) => {
 		const currentBid = getAverage([ticks[ticks.length - 2].closePrice, ticks[ticks.length - 1].closePrice]);

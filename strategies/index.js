@@ -1,22 +1,12 @@
-import Decimal from 'decimal.js';
-
 import {
-	close_price_rises_in_one_tick,
-	close_price_falls_in_one_tick,
-	close_price_lowest_in_n_ticks,
 	one_position_only,
 	stochKnD,
-	stochKnD_bottom_cross,
-	stochKnD_top_cross,
-	grab_on_profit,
-	prevalent,
-	stochKnD_generous_top_cross,
-	stochKnD_generous_bottom_cross,
-	stochKnD_touched_top,
 	trending,
 	keeper,
 	stepsAwayFromPeak,
-	either
+	either,
+	optimist,
+	daysPast
 } from './indicators.js';
 
 export const Pandit001 = {
@@ -63,4 +53,22 @@ export const Pandit003 = {
 	}
 };
 
-export default [ Pandit003 ];
+export const Base = {
+	name: 'Test 001',
+	advices: {
+		buy: [
+			one_position_only,
+			stochKnD({ cross: 'bottom', bottom: 20, kOverD: 2.5 }),
+			(ticks) => ticks[ticks.length - 1].RSI < 45
+		],
+		sell: [
+			// optimist(10),
+			either(
+				optimist(10),
+				daysPast(25)
+			)
+		]
+	}
+};
+
+export default [ Base ];
