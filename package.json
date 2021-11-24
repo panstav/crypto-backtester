@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "backup-data": "node bin/backup-data.js",
     "clean": "rm -rf data/*"
   },
   "keywords": [],
@@ -19,5 +20,8 @@
     "pipeline": "^0.1.3",
     "query-string": "^6.13.7",
     "trading-signals": "^1.2.0"
+  },
+  "devDependencies": {
+    "fs-extra": "^10.0.0"
   }
 }
