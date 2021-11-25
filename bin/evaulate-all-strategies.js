@@ -2,17 +2,17 @@ import DecimalJS from 'decimal.js';
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
 
-import defaults from './lib/defaults.js';
-import getLogger from './lib/log.js';
+import defaults from '../lib/defaults.js';
+import getLogger from '../lib/log.js';
 const log = getLogger({
 	'fetching': true,
 	'final-strategy-summary': true
 });
 
-import strategies from './strategies/index.js';
+import strategies from '../strategies/index.js';
 
-import evaluate from './lib/evaluate.js';
-import getCandleData from './lib/get-candles.js';
+import evaluate from '../lib/evaluate.js';
+import getCandleData from '../lib/get-candles.js';
 
 const INTERVAL = '1h';
 
