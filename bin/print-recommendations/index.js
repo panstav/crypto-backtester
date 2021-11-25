@@ -24,8 +24,8 @@ Recommended Crypto to buy ${{ '1d': 'today', '1h': 'at this hour' }[interval]}:`
 })(defaults({
 	// force fetching latest data
 	isUpdatingHistory: true,
+	numTicksToEvaluate: 500,
 	logTypes: {
-		'fetching': true,
-		'final-strategy-summary': true
+		'fetching': true
 	}
 }));
