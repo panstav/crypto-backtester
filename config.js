@@ -1,27 +1,49 @@
-const apiUrl = 'https://www.binance.com/api/v3';
+export const apiUrl = 'https://www.binance.com/api/v3';
 
 export default {
+
+	// platform for all interactions
 	apiUrl,
-	endpoint: `${apiUrl}/klines`,
-	ticksPerBatch: 1000,
-	updateData: true,
+
+	// api endpoint for data retrieval
+	endpointUrl: `${apiUrl}/klines`,
+
+	// binance maximum ticks per request
+	ticksPerResultsFragment: 1000,
+
+	// should recent data be fetched and saved
+	isUpdatingHistory: true,
+
+	// how big is the investing wallet
 	initialCapital: 1500,
-	tradingStartTime: 0,
-	// tradingStartTime: 1514764800000, // 1/1/18
-	// tradingStartTime: 1609462861000, // 1/1/21
+
+	// a point in time to avoid trading done beofre
+	timestampToTradeAfter: 0,
+	// timestampToTradeAfter: 1514764800000, // 1/1/18
+	// timestampToTradeAfter: 1609462861000, // 1/1/21
+
+	// number of ticks to allow trading at
 	numTicksToEvaluate: false,
 	// numTicksToEvaluate: 24 * 7 * 4,
 	// numTicksToEvaluate: 28,
 	// numTicksToEvaluate: 100,
 	// numTicksToEvaluate: 365,
+
+	// which intervals to keep ticks of and to look recommendations on
 	intervals: ['1d', '1h'],
-	interval: '1d',
-	// interval: '1h',
+
+	// some indicators require a fixed sized ticks batch to calc against other batches
+	// it is also relevant to various other functionalities DONT TOUCH unless you are doing hardcore ai scifi
 	stepSize: 14,
+
+	// how much to trade for when signal is buy
 	percentageToRisk: 10,
+	// how much to trade for when signal is sell
 	percentageToGrab: 100,
+
+	// the types of log to filter out to the console
 	logTypes: {
-		'fetching-detail': true,
+		'fetching-detail': false,
 		'fetching': true,
 		'enrichment': false,
 		'action': false,
@@ -29,10 +51,12 @@ export default {
 		'strategy-summary': true,
 		'final-strategy-summary': true
 	},
+
+	// the coins to run with
 	coins: [
-	// 	""
-	// ],
-	// coins2: [
+		"XRP"
+	],
+	coins2: [
 		"BTC",
 		"ETH",
 		"BNB",

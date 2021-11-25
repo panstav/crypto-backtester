@@ -3,7 +3,6 @@ import {
 	stochKnD,
 	trending,
 	keeper,
-	stepsAwayFromPeak,
 	either,
 	optimist,
 	daysPast
@@ -15,7 +14,7 @@ export const Pandit001 = {
 		buy: [
 			stochKnD({ cross: 'bottom', bottom: 15, kOverD: 1.75 }),
 			trending('up', { MA28: true, factor: 0.0000007 }),
-			stepsAwayFromPeak(100)
+			// stepsAwayFromPeak(100)
 		],
 		sell: [
 			keeper(3)
@@ -30,7 +29,7 @@ export const Pandit002 = {
 			// one_position_only,
 			stochKnD({ cross: 'bottom', bottom: 15, kOverD: 4.125 }),
 			trending('up', { MA28: true, factor: 0.0000007 }),
-			stepsAwayFromPeak(200)
+			// stepsAwayFromPeak(200)
 		],
 		sell: [
 			keeper(3)
@@ -54,7 +53,7 @@ export const Pandit003 = {
 };
 
 export const Base = {
-	name: 'Test 001',
+	name: 'Base',
 	advices: {
 		buy: [
 			one_position_only,

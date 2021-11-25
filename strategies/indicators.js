@@ -1,10 +1,8 @@
 import DecimalJS from 'decimal.js';
-import { getAverage } from '../lib/math.js';
-
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
 
-import config from '../config.js';
+import { getAverage } from '../lib/math.js';
 
 export function close_price_rises_in_one_tick(ticks) {
 	if (ticks.length < 3) return false;
@@ -268,32 +266,32 @@ export function keeper(percentageStep) {
 	}
 }
 
-export function stepsAwayFromPeak(steps, top = 1) {
-	steps *= 3600000;
-	if (config.interval.includes('d')) steps *= 24;
-
-	return (ticks) => {
-
-		return ticks
-			.reduce((top3, tick) => [...top3, tick].sort((a, b) => b.highPrice - a.highPrice).slice(0, 3), [])
-			.every((topTick) => ((ticks[ticks.length - 1].openTime - topTick.closeTime) > steps));
-
-		// const averages = ticks
-		// 	.map(({ closePrice }) => closePrice)
-		// 	.reduce((accu, closePrice) => {
-		// 		if (accu[accu.length - 1].length === config.stepSize) {
-		// 			accu.push([closePrice]);
-		// 		} else {
-		// 			accu[accu.length - 1].push(closePrice);
-		// 		}
-		// 		return accu;
-		// 	}, [[]])
-		// 	.map((step) => getAverage(step));
-		//
-		// const greatestAverage = Decimal.max(...averages).toNumber();
-		// return averages
-		// 	.slice(-1 * steps)
-		// 	.filter((avg) => avg < greatestAverage)
-		// 	.length < top;
-	};
-}
+// export function stepsAwayFromPeak(steps, interval) {
+// 	steps *= 3600000;
+// 	if (interval.includes('d')) steps *= 24;
+//
+// 	return (ticks) => {
+//
+// 		return ticks
+// 			.reduce((top3, tick) => [...top3, tick].sort((a, b) => b.highPrice - a.highPrice).slice(0, 3), [])
+// 			.every((topTick) => ((ticks[ticks.length - 1].openTime - topTick.closeTime) > steps));
+//
+// 		// const averages = ticks
+// 		// 	.map(({ closePrice }) => closePrice)
+// 		// 	.reduce((accu, closePrice) => {
+// 		// 		if (accu[accu.length - 1].length === config.stepSize) {
+// 		// 			accu.push([closePrice]);
+// 		// 		} else {
+// 		// 			accu[accu.length - 1].push(closePrice);
+// 		// 		}
+// 		// 		return accu;
+// 		// 	}, [[]])
+// 		// 	.map((step) => getAverage(step));
+// 		//
+// 		// const greatestAverage = Decimal.max(...averages).toNumber();
+// 		// return averages
+// 		// 	.slice(-1 * steps)
+// 		// 	.filter((avg) => avg < greatestAverage)
+// 		// 	.length < top;
+// 	};
+// }
