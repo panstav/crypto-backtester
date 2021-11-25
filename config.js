@@ -36,6 +36,10 @@ export default {
 	// it is also relevant to various other functionalities DONT TOUCH unless you are doing hardcore ai scifi
 	stepSize: 14,
 
+	// limit how many coins get processed
+	// 0 for limitless
+	coinsCountLimit: 0,
+
 	// how much to trade for when signal is buy
 	percentageToRisk: 10,
 	// how much to trade for when signal is sell

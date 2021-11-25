@@ -6,7 +6,7 @@ import getLogger from '../../lib/log.js';
 import getCandleData from '../../lib/get-candles.js';
 
 export default async function getCoins() {
-	const { apiUrl, intervals } = defaults();
+	const { apiUrl, intervals, coinsCountLimit } = defaults();
 	const log = getLogger();
 
 	const baseCurrency = 'USDT';
@@ -23,7 +23,8 @@ export default async function getCoins() {
 			// at the spot level, regardless of other options
 			&& coin.permissions.includes('SPOT')
 		))
-		.map((symbolPair) => symbolPair.symbol.slice(0, -1 * baseCurrency.length));
+		.map((symbolPair) => symbolPair.symbol.slice(0, -1 * baseCurrency.length))
+		.reverse().slice(coinsCountLimit * -1).reverse();
 
 	let coins = [];
 	for (const symbol of relevantSymbols) {
