@@ -17,7 +17,7 @@ export default {
 	// how big is the investing wallet
 	initialCapital: 1500,
 
-	// a point in time to avoid trading done beofre
+	// a point in time to avoid trading done before
 	timestampToTradeAfter: 0,
 	// timestampToTradeAfter: 1514764800000, // 1/1/18
 	// timestampToTradeAfter: 1609462861000, // 1/1/21
@@ -58,7 +58,7 @@ export default {
 
 	// the coins to run with
 	coins: [
-		"XRP"
+		"DATA"
 	],
 	coins2: [
 		"BTC",

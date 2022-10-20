@@ -2,7 +2,8 @@ import fs from 'fs-extra';
 
 import defaults from '../lib/defaults.js';
 
-(async ({ intervals }) => {
+(async () => {
+	const { intervals } = defaults();
 
 	const filesAtDataDir = await fs.readdir('./data');
 
@@ -19,4 +20,4 @@ import defaults from '../lib/defaults.js';
 		}, {});
 	}
 
-})(defaults());
+})();
