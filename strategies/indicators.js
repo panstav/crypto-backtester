@@ -157,7 +157,7 @@ export function stochKnD_touched_top(ticks) {
 
 }
 
-export function stochKnD({ cross: crossDireciotn, top = 80, bottom = 20, kOverD = 0 }) {
+export function stochKnD({ cross: crossDirection, top = 80, bottom = 20, kOverD = 0 }) {
 	return (ticks) => {
 		if (ticks.length < 3 || ticks.slice(-3).some(({ StochRSI_02_D }) => !StochRSI_02_D && StochRSI_02_D !== 0)) return false;
 
@@ -166,7 +166,7 @@ export function stochKnD({ cross: crossDireciotn, top = 80, bottom = 20, kOverD 
 		const previousSrd = ticks[ticks.length - 2].StochRSI_02_D;
 		const oneBeforeSrd = ticks[ticks.length - 3].StochRSI_02_D;
 
-		if (crossDireciotn === 'bottom') return (
+		if (crossDirection === 'bottom') return (
 			// cross happen between the previous tick and the one before that
 			previousSrk > previousSrd
 			&& oneBeforeSrk < oneBeforeSrd
@@ -175,7 +175,7 @@ export function stochKnD({ cross: crossDireciotn, top = 80, bottom = 20, kOverD 
 			&& ((previousSrk - previousSrd) > kOverD)
 		);
 
-		if (crossDireciotn === 'top') return (
+		if (crossDirection === 'top') return (
 			// cross happen between the previous tick and the one before that
 			previousSrk < previousSrd
 			&& oneBeforeSrk > oneBeforeSrd
@@ -184,7 +184,7 @@ export function stochKnD({ cross: crossDireciotn, top = 80, bottom = 20, kOverD 
 			&& ((previousSrd - previousSrk) > kOverD)
 		);
 
-		throw new Error(`Wrong crossDireciotn: ${crossDireciotn}`)
+		throw new Error(`Wrong crossDirection: ${crossDirection}`)
 
 	}
 }
