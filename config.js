@@ -1,21 +1,24 @@
+import coins from './lib/coins.js';
+
 export const apiUrl = 'https://www.binance.com/api/v3';
 
 export default {
 
-	// platform for all interactions
-	apiUrl,
+	////////////////////////////
+	// Simulation Configuration
+	////////////////////////////
 
-	// api endpoint for data retrieval
-	endpointUrl: `${apiUrl}/klines`,
-
-	// binance maximum ticks per request
-	ticksPerResultsFragment: 1000,
-
-	// should recent data be fetched and saved
-	isUpdatingHistory: true,
+	// the coins to run with
+	coins,
+	// coins: ["DATA"],
 
 	// how big is the investing wallet
 	initialCapital: 1500,
+
+	// how much to trade for when signal is buy
+	percentageToRisk: 10,
+	// how much to trade for when signal is sell
+	percentageToGrab: 100,
 
 	// a point in time to avoid trading done before
 	timestampToTradeAfter: 0,
@@ -29,21 +32,8 @@ export default {
 	// numTicksToEvaluate: 100,
 	// numTicksToEvaluate: 365,
 
-	// which intervals to keep ticks of and to look recommendations on
-	intervals: ['1d', '1h'],
-
-	// some indicators require a fixed sized ticks batch to calc against other batches
-	// it is also relevant to various other functionalities DONT TOUCH unless you are doing hardcore ai scifi
-	stepSize: 14,
-
-	// limit how many coins get processed
-	// 0 for limitless
-	coinsCountLimit: 0,
-
-	// how much to trade for when signal is buy
-	percentageToRisk: 10,
-	// how much to trade for when signal is sell
-	percentageToGrab: 100,
+	// should recent data be fetched and saved
+	isUpdatingHistory: true,
 
 	// the types of log to filter out to the console
 	logTypes: {
@@ -56,176 +46,32 @@ export default {
 		'final-strategy-summary': true
 	},
 
-	// the coins to run with
-	coins: [
-		"DATA"
-	],
-	coins2: [
-		"BTC",
-		"ETH",
-		"BNB",
-		"NEO",
-		"LTC",
-		"QTUM",
-		"ADA",
-		"XRP",
-		"EOS",
-		"IOTA",
-		"XLM",
-		"ONT",
-		"TRX",
-		"ETC",
-		"ICX",
-		"VEN",
-		"NULS",
-		"VET",
-		"PAX",
-		"LINK",
-		"WAVES",
-		"BTT",
-		"ONG",
-		"HOT",
-		"ZIL",
-		"ZRX",
-		"FET",
-		"BAT",
-		"XMR",
-		"ZEC",
-		"IOST",
-		"CELR",
-		"DASH",
-		"NANO",
-		"OMG",
-		"THETA",
-		"ENJ",
-		"MITH",
-		"MATIC",
-		"ATOM",
-		"TFUEL",
-		"ONE",
-		"FTM",
-		"ALGO",
-		"GTO",
-		"DOGE",
-		"DUSK",
-		"ANKR",
-		"WIN",
-		"COS",
-		"NPXS",
-		"COCOS",
-		"MTL",
-		"TOMO",
-		"PERL",
-		"DENT",
-		"MFT",
-		"KEY",
-		"DOCK",
-		"WAN",
-		"FUN",
-		"CVC",
-		"CHZ",
-		"BAND",
-		"BEAM",
-		"XTZ",
-		"REN",
-		"RVN",
-		"HBAR",
-		"NKN",
-		"STX",
-		"KAVA",
-		"ARPA",
-		"IOTX",
-		"RLC",
-		"CTXC",
-		"BCH",
-		"TROY",
-		"VITE",
-		"FTT",
-		"EUR",
-		"OGN",
-		"DREP",
-		"TCT",
-		"WRX",
-		"BTS",
-		"LSK",
-		"BNT",
-		"LTO",
-		"AION",
-		"MBL",
-		"COTI",
-		"STPT",
-		"WTC",
-		"DATA",
-		"SOL",
-		"CTSI",
-		"HIVE",
-		"CHR",
-		"GXS",
-		"ARDR",
-		"MDT",
-		"STMX",
-		"KNC",
-		"REP",
-		"LRC",
-		"PNT",
-		"COMP",
-		"SC",
-		"ZEN",
-		"SNX",
-		"VTHO",
-		"DGB",
-		"GBP",
-		"SXP",
-		"MKR",
-		"DCR",
-		"STORJ",
-		"MANA",
-		"AUD",
-		"YFI",
-		"BAL",
-		"BLZ",
-		"IRIS",
-		"KMD",
-		"JST",
-		"SRM",
-		"ANT",
-		"CRV",
-		"SAND",
-		"OCEAN",
-		"NMR",
-		"DOT",
-		"LUNA",
-		"RSR",
-		"PAXG",
-		"WNXM",
-		"TRB",
-		"BZRX",
-		"SUSHI",
-		"YFII",
-		"KSM",
-		"EGLD",
-		"DIA",
-		"RUNE",
-		"FIO",
-		"UMA",
-		"BEL",
-		"WING",
-		"UNI",
-		"NBS",
-		"OXT",
-		"SUN",
-		"AVAX",
-		"HNT",
-		"FLM",
-		"ORN",
-		"UTK",
-		"XVS",
-		"ALPHA",
-		"AAVE",
-		"NEAR",
-		"FIL",
-		"INJ",
-		"AUDIO",
-		"CTK"
-	]
+	////////////////////////////
+	// API Configuration
+	////////////////////////////
+
+	// platform for all interactions
+	apiUrl,
+
+	// api endpoint for data retrieval
+	endpointUrl: `${apiUrl}/klines`,
+
+	// binance maximum ticks per request
+	ticksPerResultsFragment: 1000,
+
+	// which intervals to keep ticks of and to look recommendations on
+	intervals: ['1d', '1h'],
+
+	////////////////////////////
+	// Algorithm Configuration
+	////////////////////////////
+
+	// some indicators require a fixed sized ticks batch to calc against other batches
+	// it is also relevant to various other functionalities so DONT TOUCH unless you are doing hardcore ai scifi
+	stepSize: 14,
+
+	// limit how many coins get processed
+	// 0 for limitless
+	coinsCountLimit: 0
+
 };
