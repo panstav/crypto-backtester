@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "recommend": "node bin/recommend.js",
     "analyze": "node bin/analyze/index.js",
     "print-recommendations": "node bin/print-recommendations/index.js",
     "evaluate-strategies": "node bin/evaluate-all-strategies.js",

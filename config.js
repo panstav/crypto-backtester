@@ -8,6 +8,8 @@ export default {
 	// Simulation Configuration
 	////////////////////////////
 
+	baseCurrency: 'BUSD',
+
 	// the coins to run with
 	coins,
 	// coins: ["DATA"],
@@ -25,12 +27,19 @@ export default {
 	// timestampToTradeAfter: 1514764800000, // 1/1/18
 	// timestampToTradeAfter: 1609462861000, // 1/1/21
 
+	minimumTicksPerInterval: 100,
+
 	// number of ticks to allow trading at
 	numTicksToEvaluate: false,
 	// numTicksToEvaluate: 24 * 7 * 4,
 	// numTicksToEvaluate: 28,
 	// numTicksToEvaluate: 100,
 	// numTicksToEvaluate: 365,
+
+	timeTillRecommendationExpires: {
+		'1h': 3600000 * 2,
+		'1d': 3600000 * 24 * 1.5
+	},
 
 	// should recent data be fetched and saved
 	isUpdatingHistory: true,
