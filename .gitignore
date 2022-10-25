@@ -5,3 +5,4 @@
 /npm-debug.log
 
 /data
+/bin/analyze/reports/*

@@ -61,7 +61,6 @@ const REVENUE_PERCENTAGE = 30;
 		})
 			.sort((a, b) => b.rating - a.rating);
 
-		debugger;
 		fs.writeFileSync(`bin/analyze/reports/${new Date().getMonth() + 1}-${new Date().getDate()}.${coinSymbol}.txt`, JSON.stringify(ratedVariants));
 
 		function verify(signal) {
