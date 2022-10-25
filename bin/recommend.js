@@ -28,7 +28,6 @@ const recommendations = getInitRecommendations();
 await init();
 console.log('Done!');
 
-
 async function init() {
 	return getRelevantCoins()
 		.then(considerAllCoins)
@@ -83,18 +82,20 @@ function buildRecommendation(symbol, recommendedPosition, trades) {
 
 	return {
 		Symbol: symbol,
-		Link: `https://www.binance.com/en/trade/${symbol}_${baseCurrency}`,
 		Timing: recommendedPosition.humanDate,
 		Timestamp: recommendedPosition.buyTime,
-		'Historical Profitability': calcProfitability(),
-		'Effective Volatility': calcVolatility()
+		'Historical Profitability': trades.reduce((accu, trade) => accu.add(trade.change$), new Decimal(0)).toNumber(),
+		'Profitability Percentile': calcWinningPercentile(),
+		'Total wins': trades.filter((trade) => trade.change$ > 0).length,
+		'Effective Volatility': calcVolatility(),
+		Link: `https://www.binance.com/en/trade/${symbol}_${baseCurrency}`
 	};
 
 	function calcVolatility() {
 		return `<7 ${heldFor('less', 7)} >45 ${heldFor('more', 45)}`;
 	}
 
-	function calcProfitability() {
+	function calcWinningPercentile() {
 		return new Decimal(trades.filter((trade) => trade.change$ > 0).length).div(trades.length).times(100).toDecimalPlaces(1).toNumber();
 	}
 
@@ -111,18 +112,26 @@ function buildRecommendation(symbol, recommendedPosition, trades) {
 }
 
 function printRecommendations() {
-	debugger;
-
 	intervals.forEach((interval) => {
 		console.log(`--------------------------------------------------
 Recommended Crypto to buy ${{ '1d': 'today', '1h': 'at this hour' }[interval]}:`);
-		console.table(recommendations[interval].length ? recommendations[interval].sort((a, b) => a.Timestamp - b.Timestamp) : 'None.'.bold);
+		const results = !recommendations[interval].length ? 'None.'.bold
+		: recommendations[interval].sort((a, b) => {
+			let diff = b.Timestamp - a.Timestamp;
+			return diff || b['Profitability Percentile'] - a['Profitability Percentile'];
+		})
+		.map((recommendation) => {
+			// remove irrelevant data (eg. Timestamp)
+			delete recommendation.Timestamp;
+			return recommendation;
+		});
+		console.table(results);
 	});
 }
 
 function tooLateToBuy(positions, interval) {
 	const farthest = new Date().getTime() - timeTillRecommendationExpires[interval];
-	return positions[positions.length - 1].buyTime < farthest;
+	return positions[positions.length - 1].buyTime > farthest;
 }
 
 async function getRelevantCoins () {

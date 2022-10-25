@@ -58,7 +58,7 @@ export const Base = {
 		buy: [
 			one_position_only,
 			stochKnD({ cross: 'bottom', bottom: 20, kOverD: 2.5 }),
-			(ticks) => ticks[ticks.length - 1].RSI < 45
+			(ticks) => ticks[ticks.length - 1].RSI < 25
 		],
 		sell: [
 			// optimist(10),
