@@ -22,6 +22,8 @@ const { logTypes, apiUrl, baseCurrency, coinsCountLimit, intervals, minimumTicks
 
 const log = getLogger(logTypes);
 
+const minNumberOfPreviousWins = 1;
+
 // { 1d: [], 1h: [] }
 const recommendations = getInitRecommendations();
 
@@ -54,8 +56,11 @@ function considerCoin(coinSymbol, ticks, interval) {
 	const { positions, trades } = evaluateStrategy({ strategy, ticks, coinSymbol, interval });
 
 	// ignore coin/interval pairs that don't have any positions
-	// ignore positions that are too old to act upon
-	if (!positions.length || !tooLateToBuy(positions, interval)) return;
+	if (!positions.length
+		// ignore coins that have too few winning trades
+		|| trades.filter((trade) => trade.change$ > 0).length < minNumberOfPreviousWins
+		// ignore positions that are too old to act upon
+		|| !tooLateToBuy(positions, interval)) return;
 
 	return buildRecommendation(coinSymbol, positions[positions.length - 1], trades);
 }
@@ -96,7 +101,10 @@ function buildRecommendation(symbol, recommendedPosition, trades) {
 	}
 
 	function calcWinningPercentile() {
-		return new Decimal(trades.filter((trade) => trade.change$ > 0).length).div(trades.length).times(100).toDecimalPlaces(1).toNumber();
+		const numberOfWinningTrades = trades.filter((trade) => trade.change$ > 0).length;
+		if (!numberOfWinningTrades) return 0;
+
+		return new Decimal(numberOfWinningTrades).div(trades.length).times(100).toDecimalPlaces(1).toNumber();
 	}
 
 	function heldFor(moreOrLess, days) {
