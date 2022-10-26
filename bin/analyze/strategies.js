@@ -11,9 +11,9 @@ export default [
 			lowRsi(rsiThreshold)
 		],
 		ranges: {
-			stochThreshold: [10, 50],
-			stochAngle: [0, 5],
-			rsiThreshold: [10, 50]
+			stochThreshold: [15, 25],
+			stochAngle: [0, 3],
+			rsiThreshold: [20, 30]
 		}
 	}
 

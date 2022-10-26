@@ -1,26 +1,26 @@
+import fs from 'fs';
+
 import DecimalJS from 'decimal.js';
 const Decimal = DecimalJS.Decimal;
 Decimal.set({ precision: 9 });
 
 import strategies from './strategies.js';
 import getSignals from './get-signals.js';
-import log from './log.js';
 
 import defaults from '../../lib/defaults.js';
 
 import getCandleData from '../../lib/get-candles.js';
-import fs from 'fs';
 
 const INTERVAL = '1h';
-const MAX_HOLD_HOURS = 24 * 21;
-const HIGH_ENOUGH_MODIFIER = 1.1;
-const VARIATION_STEPS = 20;
+const MAX_HOLD_HOURS = 24 * 30;
+const HIGH_ENOUGH_MODIFIER = 1.025;
+const VARIATION_STEPS = 10;
 
 const PRECISION_PERCENTAGE = 70;
 const REVENUE_PERCENTAGE = 30;
 
 (async ({ coins }) => {
-	await Promise.all(coins.map(async (coinSymbol, index) => {
+	await Promise.all(coins.slice(0, 3).map(async (coinSymbol) => {
 
 		// coin by coin - get enriched relevant ticks
 		const richTicks = (await getCandleData(coinSymbol, INTERVAL))
@@ -32,10 +32,10 @@ const REVENUE_PERCENTAGE = 30;
 		const variedStrategies = strategies.reduce(accumolateStrategyVariations, []);
 
 		const summarizedVariants = variedStrategies
-			.map(({ name, strategy, requirements }, index, variants) => {
+			.map(({ name, strategy, requirements, strategyVariant: settings }, index, variants) => {
 				const paddedIndex = (index+1).toString().padStart(variants.length.toString().length, '0');
 				process.stdout.write(`Executing strategy: ${paddedIndex}/${variants.length} - ${name}\r`);
-				return ({ name, signals: getSignals(richTicks, { strategy, requirements }) });
+				return ({ name, settings, signals: getSignals(richTicks, { strategy, requirements }) });
 			})
 			.filter((strategyVariant) => strategyVariant.signals.length)
 			.map((strategyVariant, index, variants) => {
@@ -50,6 +50,8 @@ const REVENUE_PERCENTAGE = 30;
 				return variant;
 			});
 
+			if (!summarizedVariants.length) return;
+
 		const highestPrecision = summarizedVariants.sort((a, b) => b.precision - a.precision)[0].precision;
 		const highestRevenue = summarizedVariants.sort((a, b) => b.revenue - a.revenue)[0].revenue;
 
@@ -60,6 +62,9 @@ const REVENUE_PERCENTAGE = 30;
 			return variant;
 		})
 			.sort((a, b) => b.rating - a.rating);
+
+			debugger;
+
 
 		fs.writeFileSync(`bin/analyze/reports/${new Date().getMonth() + 1}-${new Date().getDate()}.${coinSymbol}.txt`, JSON.stringify(ratedVariants));
 
@@ -87,15 +92,18 @@ function accumolateStrategyVariations(accu1, { name, strategy, requirements, ran
 	let strategyAccu = [];
 	while (new Decimal(VARIATION_STEPS).toPower(iteratorsCounter.length).greaterThan(strategyAccu.length)) {
 
+		const strategyVariant = iteratorsCounter.reduce((accu2, { key, value }) => {
+			accu2[key] = new Decimal(value).times(new Decimal(ranges[key][1]).minus(ranges[key][0]).div(VARIATION_STEPS)).toNumber();
+			return accu2;
+		}, {});
+
 		strategyAccu.push({
 			requirements,
+			strategyVariant,
 			name: `${name}${iteratorsCounter.reduce((accu2, iteratedArgument) => {
 				return `${accu2}-${iteratedArgument.key}${iteratedArgument.value}`;
 			}, '')}`,
-			strategy: strategy(iteratorsCounter.reduce((accu2, { key, value }) => {
-				accu2[key] = new Decimal(value).times(new Decimal(ranges[key][1]).minus(ranges[key][0]).div(VARIATION_STEPS)).toNumber();
-				return accu2;
-			}, {}))
+			strategy: strategy(strategyVariant)
 		});
 
 		increment();
