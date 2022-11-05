@@ -60,8 +60,7 @@ const REVENUE_PERCENTAGE = 30;
 			const revenueRating = new Decimal(variant.revenue).div(highestRevenue).div(100).times(REVENUE_PERCENTAGE).toNumber(); // .div(100).times(REVENUE_PERCENTAGE).toNumber();
 			variant.rating = new Decimal(precisionRating).times(revenueRating).toNumber();
 			return variant;
-		})
-			.sort((a, b) => b.rating - a.rating);
+		}).sort((a, b) => b.revenue - a.revenue);
 
 			debugger;
 
