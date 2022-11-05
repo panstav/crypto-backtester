@@ -92,7 +92,7 @@ function accumolateStrategyVariations(accu1, { name, strategy, requirements, ran
 	while (new Decimal(VARIATION_STEPS).toPower(iteratorsCounter.length).greaterThan(strategyAccu.length)) {
 
 		const strategyVariant = iteratorsCounter.reduce((accu2, { key, value }) => {
-			accu2[key] = new Decimal(value).times(new Decimal(ranges[key][1]).minus(ranges[key][0]).div(VARIATION_STEPS)).toNumber();
+			accu2[key] = new Decimal(value).times(new Decimal(ranges[key][1]).minus(ranges[key][0]).div(VARIATION_STEPS - 1)).add(ranges[key][0]).toNumber();
 			return accu2;
 		}, {});
 
