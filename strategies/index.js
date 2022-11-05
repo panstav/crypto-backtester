@@ -69,4 +69,18 @@ export const Base = {
 	}
 };
 
-export default [ Base ];
+export const Free = {
+	name: 'Free',
+	advices: {
+		buy: [
+			stochKnD({ cross: 'bottom', bottom: 14.7, kOverD: 0 }),
+			(ticks) => ticks[ticks.length - 1].RSI < 55
+		],
+		sell: [
+			keeper(1)
+		]
+	}
+};
+
+export default [Base];
+// export default [Free];

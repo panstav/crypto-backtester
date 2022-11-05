@@ -1,23 +1,39 @@
-export default [
-
-	{
-		name: 'Stoch&RSI',
-		requirements: {
-			tickProperties: ['StochRSI'],
-			ticksBatchSize: 4
-		},
-		strategy: ({ stochThreshold = 20, stochAngle = 2.5, rsiThreshold = 45 }) => [
-			stochFlip(stochThreshold, stochAngle),
-			lowRsi(rsiThreshold)
-		],
-		ranges: {
-			stochThreshold: [15, 25],
-			stochAngle: [0, 3],
-			rsiThreshold: [20, 30]
-		}
+const Base = {
+	name: 'Stoch&RSI',
+	requirements: {
+		tickProperties: ['StochRSI'],
+		ticksBatchSize: 4
+	},
+	strategy: ({ stochThreshold = 20, stochAngle = 2.5, rsiThreshold = 45 }) => [
+		stochFlip(stochThreshold, stochAngle),
+		lowRsi(rsiThreshold)
+	],
+	ranges: {
+		stochThreshold: [15, 25],
+		stochAngle: [0, 3],
+		rsiThreshold: [20, 50]
 	}
+};
 
-];
+const Free = {
+	name: 'Stoch&RSI',
+	requirements: {
+		tickProperties: ['StochRSI'],
+		ticksBatchSize: 14
+	},
+	strategy: ({ stochThreshold = 20, stochAngle = 2.5, rsiThreshold = 45 }) => [
+		stochFlip(stochThreshold, stochAngle),
+		lowRsi(rsiThreshold)
+	],
+	ranges: {
+		stochThreshold: [4.5, 30],
+		stochAngle: [0, 3.75],
+		rsiThreshold: [25.5, 55]
+	}
+};
+
+export default [Free];
+// export default [Base];
 
 function lowRsi(threshold) {
 	return (ticks) => ticks[ticks.length - 1].RSI < threshold;
