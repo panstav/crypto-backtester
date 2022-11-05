@@ -62,10 +62,19 @@ const REVENUE_PERCENTAGE = 30;
 			return variant;
 		}).sort((a, b) => b.revenue - a.revenue);
 
-			debugger;
+		const report = ratedVariants.reduce((accu, variant, index) => {
+			Object.keys(accu).forEach((key) => {
+				const numKey = variant.settings[key].toString();
+				if (!accu[key][numKey]) accu[key][numKey] = 0;
 
+				accu[key][variant.settings[key]] = new Decimal(accu[key][variant.settings[key]]).add(variant.precision).toNumber();
+			});
+			return accu;
+		}, Object.keys(strategies[0].ranges).reduce((accu, key) => ({ ...accu, [key]: {} }), {}));
 
-		fs.writeFileSync(`bin/analyze/reports/${new Date().getMonth() + 1}-${new Date().getDate()}.${coinSymbol}.txt`, JSON.stringify(ratedVariants));
+		debugger;
+
+		fs.writeFileSync(`bin/analyze/reports/${new Date().getMonth() + 1}-${new Date().getDate()}.${coinSymbol}.txt`, JSON.stringify(report));
 
 		function verify(signal) {
 			const sellingVerifications = richTicks
