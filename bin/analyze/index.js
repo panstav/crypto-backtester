@@ -135,25 +135,4 @@ function accumolateStrategyVariations(accu1, { name, strategy, requirements, ran
 		}
 	}
 
-	// let argumentIndex = 1;
-	//
-	// while (ar)
-	//
-	// let argumentValueIndex = 1;
-	//
-	// while (argumentIteration !== VARIATION_STEPS) {
-	//
-	// 	let variationName = '';
-	//
-	// 	const variationArguments = Object.keys(ranges).reduce((argAccu, key) => {
-	// 		const [low, high] = ranges[key];
-	// 		const qualitatedStep = new Decimal(high).minus(low).div(VARIATION_STEPS).toNumber();
-	// 		argAccu[key] = new Decimal(low).add(new Decimal(qualitatedStep).times(argumentIteration));
-	// 		return argAccu;
-	// 	}, {});
-	//
-	// 	accu1.push({ name: `${name}-`, strategy: strategy(variationArguments) });
-	// 	argumentIteration++;
-	// }
-
 }

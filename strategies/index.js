@@ -61,7 +61,6 @@ export const Base = {
 			(ticks) => ticks[ticks.length - 1].RSI < 25
 		],
 		sell: [
-			// optimist(10),
 			either(
 				optimist(10),
 				daysPast(25)
