@@ -15,7 +15,7 @@ export default {
 	// coins: ["DATA"],
 
 	// how big is the investing wallet
-	initialCapital: 1500,
+	initialCapital: 1000,
 
 	// how much to trade for when signal is buy
 	percentageToRisk: 10,
@@ -27,6 +27,7 @@ export default {
 	// timestampToTradeAfter: 1514764800000, // 1/1/18
 	// timestampToTradeAfter: 1609462861000, // 1/1/21
 
+	// minumum hours / days for a coin to be considered
 	minimumTicksPerInterval: 100,
 
 	// number of ticks to allow trading at
