@@ -37,12 +37,21 @@ async function init() {
 }
 
 async function considerAllCoins(relevantSymbols) {
+
+	// go through all coins that are relevant for consideration
 	return relevantSymbols.map((symbol, index) => async (resolve) => {
+
+		// fetch the latest data for each coin
 		const coinData = await getCoinData(symbol, index, relevantSymbols.length);
 		if (!coinData) return resolve();
 
+		// and for every interval type
 		intervals.forEach((interval) => {
+
+			// consider the coin
 			const recommendation = considerCoin(symbol, coinData[interval], interval);
+
+			// and if it's a good recommendation, add it to the list
 			if (recommendation) recommendations[interval].push(recommendation);
 		});
 
