@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+    "oco": "node bin/oco-backtest/index.js",
     "recommend": "node bin/recommend.js",
     "analyze": "node bin/analyze/index.js",
     "print-recommendations": "node bin/print-recommendations/index.js",

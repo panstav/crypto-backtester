@@ -49,7 +49,7 @@ export default function evaluate({ strategy, symbol, ticks }) {
 					|| (numTicksToEvaluate > stepSize * 2 && evaluatedTicks.length < (stepSize * 2))
 				) return evaluatedTicks;
 
-				if (positions.filter(({ resolved }) => !!resolved).length > 1) {
+				if (positions.filter(({ resolved }) => !resolved).length > 1) {
 					throw new Error('More than one open position at a time is not supported by this evaluator.');
 				}
 
@@ -93,7 +93,10 @@ export default function evaluate({ strategy, symbol, ticks }) {
 			change$: new Decimal(atPrice).times(coinsInPosition).minus(new Decimal(buyPrice).times(coinsInPosition)).toDecimalPlaces(2).toNumber()
 		});
 
-		positions.map(({ resolved }) => resolved = true);
+		positions.map((position) => {
+			position.resolved = true;
+			return position;
+		});
 		wallet.USD = new Decimal(wallet.USD).add(new Decimal(coinsInPosition).times(atPrice)).toNumber();
 		wallet[symbol] = wallet[symbol] - coinsInPosition;
 		log('action', `${'SELL'.bold}: ${symbol}${coinsInPosition} for $${atPrice} each`);
