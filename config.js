@@ -27,6 +27,8 @@ export default {
 	// timestampToTradeAfter: 1514764800000, // 1/1/18
 	// timestampToTradeAfter: 1609462861000, // 1/1/21
 
+	tradeFractionPercision: 6,
+
 	// minumum hours / days for a coin to be considered
 	minimumTicksPerInterval: 100,
 
