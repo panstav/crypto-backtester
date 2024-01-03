@@ -8,7 +8,7 @@ export default {
 	// Simulation Configuration
 	////////////////////////////
 
-	baseCurrency: 'BUSD',
+	baseCurrency: 'USDT',
 
 	// the coins to run with
 	coins,
